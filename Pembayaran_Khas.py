@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 from datetime import date
 import uuid
-import os
 
 # Fungsi untuk menyimpan data ke CSV
 def simpan_data(data, filename='data_pembayaran.csv'):
@@ -25,6 +24,16 @@ def hapus_data(id_hapus, filename='data_pembayaran.csv'):
     df = muat_data(filename)
     df = df[df["ID"] != id_hapus]
     df.to_csv(filename, index=False)
+
+# Fungsi rerun yang kompatibel
+def safe_rerun():
+    try:
+        st.rerun()  # Streamlit versi >= 1.25
+    except AttributeError:
+        try:
+            st.experimental_rerun()  # Versi sebelum 1.25
+        except AttributeError:
+            pass  # Jika tidak tersedia, abaikan
 
 # Title
 st.title("💳 PEMBAYARAN UANG KASS ")
@@ -51,7 +60,7 @@ with st.sidebar.form(key='form_pembayaran'):
             }
             simpan_data(data)
             st.success("✅ Data pembayaran berhasil disimpan!")
-            st.experimental_rerun()
+            safe_rerun()
         else:
             st.warning("⚠️ Mohon isi nama dan nominal dengan benar!")
 
@@ -72,7 +81,7 @@ if not df.empty:
             if st.button("❌ Hapus", key=row['ID']):
                 hapus_data(row['ID'])
                 st.success(f"Data '{row['Nama Siswa']}' berhasil dihapus.")
-                st.experimental_rerun()
+                safe_rerun()
 
     # Download CSV
     csv = df.to_csv(index=False).encode('utf-8')
